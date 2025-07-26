@@ -8,6 +8,16 @@ data_root: &d_r ./data
 modelnet40_ft: !join [*d_r, ModelNet40_mvcnn_gvcnn.mat]
 ntu2012_ft: !join [*d_r, NTU2012_mvcnn_gvcnn.mat]
 
+# Converted hypergraph datasets - EXPLICIT versions (uses original hypergraph structure)
+coauthorship_cora_ft: !join [*d_r, converted_hgnn/coauthorship_cora_explicit.mat]
+coauthorship_dblp_ft: !join [*d_r, converted_hgnn/coauthorship_dblp_explicit.mat]
+cocitation_cora_ft: !join [*d_r, converted_hgnn/cocitation_cora_explicit.mat]
+cocitation_citeseer_ft: !join [*d_r, converted_hgnn/cocitation_citeseer_explicit.mat]
+cocitation_pubmed_ft: !join [*d_r, converted_hgnn/cocitation_pubmed_explicit.mat]
+
+# Add flag to use explicit hypergraphs
+use_explicit_hypergraph: True  # Test explicit with balanced regularization
+
 
 #Hypergraph
 graph_type: &g_t hypergraph
@@ -24,9 +34,15 @@ use_gvcnn_feature_for_structure: True
 
 #Model
 #--------------------------------------------------
-# select the dataset you use, ModelNet40 or NTU2012
-on_dataset: &o_d ModelNet40
+# select the dataset you use
+#on_dataset: &o_d ModelNet40
 #on_dataset: &o_d NTU2012
+# Your hypergraph datasets:
+on_dataset: &o_d CoauthorshipCora
+#on_dataset: &o_d CoauthorshipDblp  
+#on_dataset: &o_d CocitationCora
+#on_dataset: &o_d CocitationCiteseer
+#on_dataset: &o_d CocitationPubmed
 #--------------------------------------------------
 
 #---------------------------------------
@@ -47,11 +63,13 @@ ckpt_folder: !join [*r_r, ckpt]
 #Train
 max_epoch: 600
 n_hid: 128
-lr: 0.001
+lr: 0.0005  # Stable learning rate  
 milestones: [100]
 gamma: 0.9
-drop_out: 0.5
+drop_out: 0.7  # Strong dropout for regularization
 print_freq: 50
-weight_decay: 0.0005
+weight_decay: 0.005  # Strong weight decay
 decay_step: 200
 decay_rate: 0.7
+# Early stopping
+patience: 50  # Balanced early stopping
