@@ -36,7 +36,7 @@ def feature_concat(*F_list, normal_col=False):
     """
     features = None
     for f in F_list:
-        if f is not None and f != []:
+        if f is not None and (not hasattr(f, "size") or f.size > 0):
             # deal with the dimension that more than two
             if len(f.shape) > 2:
                 f = f.reshape(-1, f.shape[-1])
@@ -63,7 +63,7 @@ def hyperedge_concat(*H_list):
     """
     H = None
     for h in H_list:
-        if h is not None and h != []:
+        if h is not None and (not hasattr(h, "size") or h.size > 0):
             # for the first H appended to fused hypergraph incidence matrix
             if H is None:
                 H = h
@@ -148,13 +148,17 @@ def construct_H_with_KNN_from_distance(dis_mat, k_neig, is_probH=True, m_prob=1)
 
         for node_idx in nearest_idx[:k_neig]:
             if is_probH:
-                H[node_idx, center_idx] = np.exp(-dis_vec[0, node_idx] ** 2 / (m_prob * avg_dis) ** 2)
+                H[node_idx, center_idx] = np.exp(
+                    -dis_vec[0, node_idx] ** 2 / (m_prob * avg_dis) ** 2
+                )
             else:
                 H[node_idx, center_idx] = 1.0
     return H
 
 
-def construct_H_with_KNN(X, K_neigs=[10], split_diff_scale=False, is_probH=True, m_prob=1):
+def construct_H_with_KNN(
+    X, K_neigs=[10], split_diff_scale=False, is_probH=True, m_prob=1
+):
     """
     init multi-scale hypergraph Vertex-Edge matrix from original node feature matrix
     :param X: N_object x feature_number
@@ -171,7 +175,7 @@ def construct_H_with_KNN(X, K_neigs=[10], split_diff_scale=False, is_probH=True,
         K_neigs = [K_neigs]
 
     dis_mat = Eu_dis(X)
-    H = []
+    H = None
     for k_neig in K_neigs:
         H_tmp = construct_H_with_KNN_from_distance(dis_mat, k_neig, is_probH, m_prob)
         if not split_diff_scale:
