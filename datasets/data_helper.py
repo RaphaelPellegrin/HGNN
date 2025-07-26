@@ -7,12 +7,30 @@ def load_ft(data_dir, feature_name="GVCNN"):
     lbls = data["Y"].astype(np.int64)
     if lbls.min() == 1:
         lbls = lbls - 1
-    idx = data["indices"].item()
+
+    # Handle different indices formats
+    indices_data = data["indices"]
+    if indices_data.size == 1:
+        # Original format: nested structure
+        idx = indices_data.item()
+    else:
+        # Converted format: flat array
+        idx = indices_data.flatten()
 
     if feature_name == "MVCNN":
-        fts = data["X"][0].item().astype(np.float32)
+        if data["X"].shape == (2, 1):
+            # Original format: (2, 1) shape with nested items
+            fts = data["X"][0].item().astype(np.float32)
+        else:
+            # Converted format: (1, 2) shape with direct arrays
+            fts = data["X"][0, 0].astype(np.float32)
     elif feature_name == "GVCNN":
-        fts = data["X"][1].item().astype(np.float32)
+        if data["X"].shape == (2, 1):
+            # Original format: (2, 1) shape with nested items
+            fts = data["X"][1].item().astype(np.float32)
+        else:
+            # Converted format: (1, 2) shape with direct arrays
+            fts = data["X"][0, 1].astype(np.float32)
     else:
         print(f"wrong feature name{feature_name}!")
         raise IOError
